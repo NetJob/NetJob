@@ -28,11 +28,10 @@ import Foundation
 /// Network client.
 public protocol NetworkClient {
 
-    /// Network interactor executing task.
-    var networkInteractor: NetworkInteractor { get set }
-
     /// Request adapter. Process request before execute.
     var requestAdapter: ((URLRequest) -> URLRequest)? { get set }
+    /// Network interactor executing task.
+    var networkInteractor: NetworkInteractor { get set }
 
     /// Execute network request.
     ///
