@@ -33,5 +33,5 @@ import Foundation
 public enum Result {
     case success(Response)
     case canceled
-    case failure(RequestError)
+    case failure(ErrorResponse)
 }

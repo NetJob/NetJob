@@ -1,5 +1,5 @@
 //
-//  RequestError.swift
+//  ErrorResponse.swift
 //  NetJob
 //
 //  Copyright (c) 2018 Jason Nam (https://jasonnam.com)
@@ -25,13 +25,13 @@
 
 import Foundation
 
-/// Request error.
+/// Error response.
 ///
 /// - invalidURL: Invalid URL.
 /// - error: Error.
 /// - noResponse: No response.
 /// - requestFailed: Request failed.
-public enum RequestError: Error {
+public enum ErrorResponse: Error {
     case invalidURL
     case error(Error)
     case noResponse
