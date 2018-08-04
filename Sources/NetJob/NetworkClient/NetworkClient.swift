@@ -39,17 +39,34 @@ public protocol NetworkClient {
     ///   - request: Target request.
     ///   - completionHandler: Completion handler.
     /// - Returns: URLSessionDataTask for request.
-    func request(_ request: Request, completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask?
+    func request(_ request: Request,
+                 completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask?
+
+    /// Execute network request.
+    ///
+    /// - Parameters:
+    ///   - request: Target request.
+    ///   - dispatchQueue: Dispatch queue to execute completion handler.
+    ///   - completionHandler: Completion handler.
+    /// - Returns: URLSessionDataTask for request.
+    func request(_ request: Request, dispatchQueue: DispatchQueue,
+                 completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask?
 }
 
 // MARK: - Default implementation.
 public extension NetworkClient {
 
-    func request(_ request: Request, completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask? {
+    func request(_ request: Request,
+                 completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask? {
+        return self.request(request, dispatchQueue: .main, completionHandler: completionHandler)
+    }
+
+    func request(_ request: Request, dispatchQueue: DispatchQueue,
+                 completionHandler: @escaping (Result) -> ()) -> URLSessionDataTask? {
         // Convert end point to URLComponents.
         guard let endPointURL = URL(string: request.url),
             var endPoint = URLComponents(url: endPointURL, resolvingAgainstBaseURL: false) else {
-            completionHandler(.failure(.invalidURL))
+            dispatchQueue.sync { completionHandler(.failure(.invalidURL)) }
             return nil
         }
 
@@ -62,7 +79,7 @@ public extension NetworkClient {
 
         // Setup URL request.
         guard let url = endPoint.url else {
-            completionHandler(.failure(.invalidURL))
+            dispatchQueue.sync { completionHandler(.failure(.invalidURL)) }
             return nil
         }
         var urlRequest = URLRequest(url: url)
@@ -77,11 +94,11 @@ public extension NetworkClient {
 
         return networkInteractor.request(urlRequest) { data, urlResponse, error in
             if let error = error {
-                completionHandler(.failure(.error(error)))
+                dispatchQueue.sync { completionHandler(.failure(.error(error))) }
                 return
             }
             guard let urlResponse = urlResponse as? HTTPURLResponse else {
-                completionHandler(.failure(.noResponse))
+                dispatchQueue.sync { completionHandler(.failure(.noResponse)) }
                 return
             }
             let response = Response(statusCode: urlResponse.statusCode,
@@ -89,11 +106,11 @@ public extension NetworkClient {
                                     data: data)
             switch response.statusCode {
             case 200..<300:
-                completionHandler(.success(response))
+                dispatchQueue.sync { completionHandler(.success(response)) }
             case -999:
-                completionHandler(.canceled)
+                dispatchQueue.sync { completionHandler(.canceled) }
             default:
-                completionHandler(.failure(.requestFailed(response)))
+                dispatchQueue.sync { completionHandler(.failure(.requestFailed(response))) }
             }
         }
     }
