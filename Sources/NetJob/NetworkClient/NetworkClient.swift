@@ -66,7 +66,7 @@ public extension NetworkClient {
         // Convert end point to URLComponents.
         guard let endPointURL = URL(string: request.url),
             var endPoint = URLComponents(url: endPointURL, resolvingAgainstBaseURL: false) else {
-            dispatchQueue.sync { completionHandler(.failure(.invalidURL)) }
+            dispatchQueue.async { completionHandler(.failure(.invalidURL)) }
             return nil
         }
 
@@ -79,7 +79,7 @@ public extension NetworkClient {
 
         // Setup URL request.
         guard let url = endPoint.url else {
-            dispatchQueue.sync { completionHandler(.failure(.invalidURL)) }
+            dispatchQueue.async { completionHandler(.failure(.invalidURL)) }
             return nil
         }
         var urlRequest = URLRequest(url: url)
@@ -94,11 +94,11 @@ public extension NetworkClient {
 
         return networkInteractor.request(urlRequest) { data, urlResponse, error in
             if let error = error {
-                dispatchQueue.sync { completionHandler(.failure(.error(error))) }
+                dispatchQueue.async { completionHandler(.failure(.error(error))) }
                 return
             }
             guard let urlResponse = urlResponse as? HTTPURLResponse else {
-                dispatchQueue.sync { completionHandler(.failure(.noResponse)) }
+                dispatchQueue.async { completionHandler(.failure(.noResponse)) }
                 return
             }
             let response = Response(statusCode: urlResponse.statusCode,
@@ -106,11 +106,11 @@ public extension NetworkClient {
                                     data: data)
             switch response.statusCode {
             case 200..<300:
-                dispatchQueue.sync { completionHandler(.success(response)) }
+                dispatchQueue.async { completionHandler(.success(response)) }
             case -999:
-                dispatchQueue.sync { completionHandler(.canceled) }
+                dispatchQueue.async { completionHandler(.canceled) }
             default:
-                dispatchQueue.sync { completionHandler(.failure(.requestFailed(response))) }
+                dispatchQueue.async { completionHandler(.failure(.requestFailed(response))) }
             }
         }
     }
